@@ -18,6 +18,10 @@ const UserModel = sequelize.define("user", {
     unique: true,
     allowNull: false,
   },
+  state: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
 });
 
 module.exports = UserModel;
