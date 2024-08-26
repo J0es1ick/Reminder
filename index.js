@@ -1,4 +1,3 @@
-const util = require("util");
 const TelegramBot = require("node-telegram-bot-api");
 const schedule = require("node-schedule");
 const UserModel = require("./models/User");
@@ -18,7 +17,7 @@ const commands = [
   },
   { command: "/create", description: "Создать напоминание" },
   { command: "/id", description: "Узнать свой айди" },
-  { command: "/delete", description: "Удалить напоминание" },
+  { command: "/rlist", description: "Узнать все свои напоминания" },
   { command: "/cancel", description: "Отменяет выполнение команды" },
 ];
 const reminder = [];
@@ -40,7 +39,7 @@ const start = async () => {
     },
     { command: "/create", description: "Создать напоминание" },
     { command: "/id", description: "Узнать свой айди" },
-    { command: "/delete", description: "Удалить напоминание" },
+    { command: "/rlist", description: "Узнать все свои напоминания" },
     { command: "/cancel", description: "Отменяет выполнение команды" },
   ]);
 
@@ -114,9 +113,6 @@ const start = async () => {
           );
         }
 
-        user.state = 1;
-        await user.save();
-
         const data = text.split(" "); // [DD-MM-YYYY, HH:MM]
         const DMY = data[0].split("-"); // [DD, MM, YYYY]
         const time = data[1].split(":"); // [HH, MM]
@@ -128,6 +124,19 @@ const start = async () => {
           time[0],
           time[1]
         );
+
+        let now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        if (date < now) {
+          return bot.sendMessage(
+            chatId,
+            "Данная дата уже прошла, попробуйте другую"
+          );
+        }
+
+        user.state = 1;
+        await user.save();
 
         reminder.date = date;
 
@@ -173,7 +182,7 @@ const start = async () => {
         return bot.sendMessage(chatId, helpText);
       }
 
-      if (text === "/delete") {
+      if (text === "/rlist") {
         const reminders = await ReminderModel.findAll({
           where: {
             userId: user.id,
@@ -187,9 +196,11 @@ const start = async () => {
           helpText += reminders
             .map(
               (reminders) =>
-                `${reminders.title} - ${reminders.date.getDate()}-${
+                `Напоминание: ${
+                  reminders.title
+                } | Дата: ${reminders.date.getDate()} ${
                   reminders.date.getMonth() + 1
-                }-${reminders.date.getFullYear()} ${reminders.date.getHours()}:${reminders.date.getMinutes()}`
+                } ${reminders.date.getFullYear()} в ${reminders.date.getHours()} час. ${reminders.date.getMinutes()} мин. (По МСК)`
             )
             .join(`\n`);
           return bot.sendMessage(chatId, helpText);
