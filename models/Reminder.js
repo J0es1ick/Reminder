@@ -10,6 +10,10 @@ const ReminderModel = sequelize.define("reminder", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  desription: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   date: {
     type: DataTypes.DATE,
     allowNull: true,

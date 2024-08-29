@@ -19,12 +19,19 @@ const commands = [
   { command: "/create", description: "Создать напоминание" },
   { command: "/id", description: "Узнать свой айди" },
   { command: "/rlist", description: "Узнать все свои напоминания" },
-  { command: "/cancel", description: "Отменяет выполнение команды" },
+  { command: "/help", description: "Обратная связь с автором" },
 ];
 const reminder = [];
 const cancelOptions = {
   reply_markup: JSON.stringify({
-    inline_keyboard: [[{ text: "Вернуться", callback_data: "/cancel" }]],
+    inline_keyboard: [[{ text: "Вернуться", callback_data: "/back" }]],
+  }),
+};
+const heplOptions = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [{ text: "Связь с автором", url: "https://t.me/Debilchik89" }],
+    ],
   }),
 };
 
@@ -46,7 +53,7 @@ const start = async () => {
     { command: "/create", description: "Создать напоминание" },
     { command: "/id", description: "Узнать свой айди" },
     { command: "/rlist", description: "Узнать все свои напоминания" },
-    { command: "/cancel", description: "Отменяет выполнение команды" },
+    { command: "/help", description: "Обратная связь с автором" },
   ]);
 
   /*  bot.onText(/^\/start$/, function (msg) {
@@ -64,21 +71,23 @@ const start = async () => {
 */
 
   bot.on("message", async (msg) => {
-    const chatId = msg.chat.id;
-    const tgId = msg.from.id;
     const text = msg.text;
-    const msgId = msg.message_id;
+    const options = {
+      chatId: msg.chat.id,
+      tgId: msg.from.id,
+      message_id: msg.message_id,
+    };
 
     let user = await UserModel.findOne({
       where: {
-        chatId: chatId,
-        tgId: tgId,
+        chatId: options.chatId,
+        tgId: options.tgId,
       },
       include: [ReminderModel],
     });
     if (user === null) {
       user = await UserModel.create(
-        { chatId: chatId, tgId: tgId, state: 1 },
+        { chatId: options.chatId, tgId: options.tgId, state: 1 },
         { returning: true, include: [ReminderModel] }
       );
     }
@@ -89,7 +98,7 @@ const start = async () => {
           user.state = 2;
           await user.save();
           return bot.sendMessage(
-            chatId,
+            options.chatId,
             `Введите название напоминания`,
             cancelOptions
           );
@@ -101,7 +110,7 @@ const start = async () => {
         for (let i = 0; i < callbackText.length; i++) {
           if (text === callbackText[i] || text == undefined) {
             return bot.sendMessage(
-              chatId,
+              options.chatId,
               "Такое название не поддерживается, попробуйте снова"
             );
           }
@@ -114,7 +123,7 @@ const start = async () => {
         await user.save();
 
         return bot.sendMessage(
-          chatId,
+          options.chatId,
           "Введите дату в формате DD-MM-YYYY HH:MM",
           cancelOptions
         );
@@ -128,7 +137,7 @@ const start = async () => {
           )
         ) {
           return bot.sendMessage(
-            chatId,
+            options.chatId,
             "Некорректный вывод даты и времени, попробуйте ещё раз"
           );
         }
@@ -146,11 +155,10 @@ const start = async () => {
         );
 
         let now = new Date();
-        now.setHours(0, 0, 0, 0);
 
         if (date < now) {
           return bot.sendMessage(
-            chatId,
+            options.chatId,
             "Данная дата уже прошла, попробуйте другую"
           );
         }
@@ -170,7 +178,14 @@ const start = async () => {
         );
 
         schedule.scheduleJob(date, function () {
-          bot.sendMessage(chatId, latestReminder.title);
+          bot.sendMessage(
+            options.chatId,
+            `Ваше напоминание на ${latestReminder.date.getDate()} ${
+              latestReminder.date.getMonth() + 1
+            } ${latestReminder.date.getFullYear()} в ${latestReminder.date.getHours()} час. ${latestReminder.date.getMinutes()} мин: \n\n ${
+              latestReminder.title
+            }`
+          );
           ReminderModel.destroy({
             where: {
               userId: latestReminder.userId,
@@ -180,18 +195,29 @@ const start = async () => {
           });
         });
 
-        return bot.sendMessage(chatId, "Напоминание создано!");
+        return bot.sendMessage(options.chatId, "Напоминание создано!");
       }
 
       if (text === "/start") {
         return bot.sendMessage(
-          chatId,
+          options.chatId,
           `Добро пожаловать в телеграм бот Reminder, напишите /create для создания напоминания`
         );
       }
 
       if (text === "/id") {
-        return bot.sendMessage(chatId, "Это твой айди - " + tgId);
+        return bot.sendMessage(
+          options.chatId,
+          "Это твой айди - " + options.tgId
+        );
+      }
+
+      if (text === "/help") {
+        return bot.sendMessage(
+          options.chatId,
+          "По любым вопросам можете связаться с автором бота",
+          heplOptions
+        );
       }
 
       if (text === "/info") {
@@ -199,7 +225,7 @@ const start = async () => {
         helpText += commands
           .map((command) => `${command.command} - ${command.description}`)
           .join(`\n`);
-        return bot.sendMessage(chatId, helpText, cancelOptions);
+        return bot.sendMessage(options.chatId, helpText);
       }
 
       if (text === "/rlist") {
@@ -209,11 +235,10 @@ const start = async () => {
           },
         });
 
-        if (reminders == null) {
+        if (reminders.length === 0) {
           return bot.sendMessage(
-            chatId,
-            "У вас ещё нет ни одного напоминания",
-            cancelOptions
+            options.chatId,
+            "У вас ещё нет ни одного напоминания"
           );
         } else {
           let helpText = `Список ваших напоминаний: \n`;
@@ -227,7 +252,7 @@ const start = async () => {
                 } ${reminders.date.getFullYear()} в ${reminders.date.getHours()} час. ${reminders.date.getMinutes()} мин. (По МСК)`
             )
             .join(`\n`);
-          return bot.sendMessage(chatId, helpText, cancelOptions);
+          return bot.sendMessage(options.chatId, helpText);
         }
       }
 
@@ -235,31 +260,34 @@ const start = async () => {
       for (let i = 0; i < callbackText.length; i++) {
         if (text !== callbackText[i] || text == undefined) {
           return bot.sendMessage(
-            chatId,
+            options.chatId,
             "Я тебя не понимаю, попробуй команду из списка"
           );
         }
       }
     } catch (e) {
-      return bot.sendMessage("Произошла ошибка!");
+      return bot.sendMessage(options.chatId, "Произошла ошибка!");
     }
   });
 
   bot.on("callback_query", async (msg) => {
-    const chatId = msg.message.chat.id;
+    const options = {
+      chatId: msg.message.chat.id,
+      message_id: msg.message.message_id,
+    };
     const data = msg.data;
-    if (data === "/cancel") {
-      let user = await UserModel.findOne({
-        where: {
-          chatId: chatId,
-        },
-      });
+    let user = await UserModel.findOne({
+      where: {
+        chatId: options.chatId,
+      },
+    });
+    if (data === "/back") {
       user.state = 1;
       await user.save();
-      return (
-        bot.sendMessage(chatId, "Вы отменили действие"),
-        console.log(msg.message_id)
-      );
+      bot.editMessageText("Вы отменили действие", {
+        chat_id: user.chatId,
+        message_id: options.message_id,
+      });
     }
   });
 };
