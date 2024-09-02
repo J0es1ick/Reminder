@@ -34,6 +34,25 @@ const heplOptions = {
     ],
   }),
 };
+const descOptions = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [{ text: "Пропустить", callback_data: "/skip" }],
+      [{ text: "Вернуться", callback_data: "/back" }],
+    ],
+  }),
+};
+const listOptions = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [
+        { text: ">", callback_data: "/next" },
+        { text: ">>", callback_data: "/last" },
+      ],
+      [{ text: "Удалить по номеру", callback_data: "/delete" }],
+    ],
+  }),
+};
 
 const start = async () => {
   try {
@@ -124,12 +143,34 @@ const start = async () => {
 
         return bot.sendMessage(
           options.chatId,
+          "Введите описание (необязательно)",
+          descOptions
+        );
+      }
+
+      if (user.state === 3) {
+        let callbackText = commands.map((commands) => commands.command);
+        for (let i = 0; i < callbackText.length; i++) {
+          if (text === callbackText[i] || text == undefined) {
+            return bot.sendMessage(
+              options.chatId,
+              "Такое описание не поддерживается, попробуйте снова"
+            );
+          }
+        }
+
+        reminder.description = text;
+        user.state = 4;
+        await user.save();
+
+        return bot.sendMessage(
+          options.chatId,
           "Введите дату в формате DD-MM-YYYY HH:MM",
           cancelOptions
         );
       }
 
-      if (user.state === 3) {
+      if (user.state === 4) {
         if (
           text === undefined ||
           !text.match(
@@ -138,7 +179,8 @@ const start = async () => {
         ) {
           return bot.sendMessage(
             options.chatId,
-            "Некорректный вывод даты и времени, попробуйте ещё раз"
+            "Некорректный вывод даты и времени, попробуйте ещё раз",
+            cancelOptions
           );
         }
 
@@ -172,10 +214,13 @@ const start = async () => {
           {
             userId: reminder.userId,
             title: reminder.title,
+            description: reminder.description,
             date: reminder.date,
           },
           { returning: true }
         );
+
+        reminder.description = null;
 
         schedule.scheduleJob(date, function () {
           bot.sendMessage(
@@ -252,7 +297,7 @@ const start = async () => {
                 } ${reminders.date.getFullYear()} в ${reminders.date.getHours()} час. ${reminders.date.getMinutes()} мин. (По МСК)`
             )
             .join(`\n`);
-          return bot.sendMessage(options.chatId, helpText);
+          return bot.sendMessage(options.chatId, helpText, listOptions);
         }
       }
 
@@ -286,6 +331,14 @@ const start = async () => {
       await user.save();
       bot.editMessageText("Вы отменили действие", {
         chat_id: user.chatId,
+        message_id: options.message_id,
+      });
+    }
+    if (data === "/skip") {
+      user.state = 4;
+      await user.save();
+      bot.editMessageText("Введите дату в формате DD-MM-YYYY HH:MM", {
+        chat_id: options.chatId,
         message_id: options.message_id,
       });
     }
