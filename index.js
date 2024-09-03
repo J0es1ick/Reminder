@@ -27,15 +27,8 @@ const commands = [
   { command: "/rlist", description: "Узнать все свои напоминания" },
   { command: "/help", description: "Обратная связь с автором" },
 ];
-const reminder = [];
 
-const deleteKB = (chatId, msgId) => {
-  return bot
-    .editMessageReplyMarkup({}, { chat_id: chatId, message_id: msgId })
-    .catch((err) => {
-      console.error("Ошибка при редактировании сообщения:", err);
-    });
-};
+const reminder = [];
 let currentMessageId;
 
 const start = async () => {
@@ -81,6 +74,17 @@ const start = async () => {
       message_id: msg.message_id,
     };
 
+    if (currentMessageId) {
+      bot
+        .editMessageReplyMarkup(
+          {},
+          { chat_id: options.chatId, message_id: currentMessageId }
+        )
+        .catch((err) => {
+          console.error("Ошибка при редактировании сообщения:", err);
+        });
+    }
+
     let user = await UserModel.findOne({
       where: {
         chatId: options.chatId,
@@ -114,8 +118,6 @@ const start = async () => {
       }
 
       if (user.state === 2) {
-        deleteKB(options.chatId, currentMessageId);
-
         let callbackText = commands.map((commands) => commands.command);
         for (let i = 0; i < callbackText.length; i++) {
           if (text === callbackText[i] || text == undefined) {
@@ -144,8 +146,6 @@ const start = async () => {
       }
 
       if (user.state === 3) {
-        deleteKB(options.chatId, currentMessageId);
-
         let callbackText = commands.map((commands) => commands.command);
         for (let i = 0; i < callbackText.length; i++) {
           if (text === callbackText[i] || text == undefined) {
@@ -172,8 +172,6 @@ const start = async () => {
       }
 
       if (user.state === 4) {
-        deleteKB(options.chatId, currentMessageId);
-
         if (
           text === undefined ||
           !text.match(
@@ -190,8 +188,6 @@ const start = async () => {
               currentMessageId = sendMessage.message_id;
             });
         }
-
-        deleteKB(options.chatId, currentMessageId);
 
         const data = text.split(" "); // [DD-MM-YYYY, HH:MM]
         const DMY = data[0].split("-"); // [DD, MM, YYYY]
@@ -218,8 +214,6 @@ const start = async () => {
               currentMessageId = sendMessage.message_id;
             });
         }
-
-        deleteKB(options.chatId, currentMessageId);
 
         user.state = 1;
         await user.save();
