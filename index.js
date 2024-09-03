@@ -4,6 +4,12 @@ const UserModel = require("./models/User");
 const ReminderModel = require("./models/Reminder");
 const assotiations = require("./models/assotiations");
 const sequelize = require("./db");
+const {
+  cancelOptions,
+  heplOptions,
+  descOptions,
+  listOptions,
+} = require("./options");
 
 assotiations.func();
 
@@ -22,37 +28,15 @@ const commands = [
   { command: "/help", description: "Обратная связь с автором" },
 ];
 const reminder = [];
-const cancelOptions = {
-  reply_markup: JSON.stringify({
-    inline_keyboard: [[{ text: "Вернуться", callback_data: "/back" }]],
-  }),
+
+const deleteKB = (chatId, msgId) => {
+  return bot
+    .editMessageReplyMarkup({}, { chat_id: chatId, message_id: msgId })
+    .catch((err) => {
+      console.error("Ошибка при редактировании сообщения:", err);
+    });
 };
-const heplOptions = {
-  reply_markup: JSON.stringify({
-    inline_keyboard: [
-      [{ text: "Связь с автором", url: "https://t.me/Debilchik89" }],
-    ],
-  }),
-};
-const descOptions = {
-  reply_markup: JSON.stringify({
-    inline_keyboard: [
-      [{ text: "Пропустить", callback_data: "/skip" }],
-      [{ text: "Вернуться", callback_data: "/back" }],
-    ],
-  }),
-};
-const listOptions = {
-  reply_markup: JSON.stringify({
-    inline_keyboard: [
-      [
-        { text: ">", callback_data: "/next" },
-        { text: ">>", callback_data: "/last" },
-      ],
-      [{ text: "Удалить по номеру", callback_data: "/delete" }],
-    ],
-  }),
-};
+let currentMessageId;
 
 const start = async () => {
   try {
@@ -116,15 +100,22 @@ const start = async () => {
         if (user.state === 1) {
           user.state = 2;
           await user.save();
-          return bot.sendMessage(
-            options.chatId,
-            `Введите название напоминания`,
-            cancelOptions
-          );
+
+          return bot
+            .sendMessage(
+              options.chatId,
+              `Введите название напоминания`,
+              cancelOptions()
+            )
+            .then((sendMessage) => {
+              currentMessageId = sendMessage.message_id;
+            });
         }
       }
 
       if (user.state === 2) {
+        deleteKB(options.chatId, currentMessageId);
+
         let callbackText = commands.map((commands) => commands.command);
         for (let i = 0; i < callbackText.length; i++) {
           if (text === callbackText[i] || text == undefined) {
@@ -141,14 +132,20 @@ const start = async () => {
         user.state = 3;
         await user.save();
 
-        return bot.sendMessage(
-          options.chatId,
-          "Введите описание (необязательно)",
-          descOptions
-        );
+        return bot
+          .sendMessage(
+            options.chatId,
+            "Введите описание (необязательно)",
+            descOptions()
+          )
+          .then((sendMessage) => {
+            currentMessageId = sendMessage.message_id;
+          });
       }
 
       if (user.state === 3) {
+        deleteKB(options.chatId, currentMessageId);
+
         let callbackText = commands.map((commands) => commands.command);
         for (let i = 0; i < callbackText.length; i++) {
           if (text === callbackText[i] || text == undefined) {
@@ -163,26 +160,38 @@ const start = async () => {
         user.state = 4;
         await user.save();
 
-        return bot.sendMessage(
-          options.chatId,
-          "Введите дату в формате DD-MM-YYYY HH:MM",
-          cancelOptions
-        );
+        return bot
+          .sendMessage(
+            options.chatId,
+            "Введите дату в формате DD-MM-YYYY HH:MM",
+            cancelOptions()
+          )
+          .then((sendMessage) => {
+            currentMessageId = sendMessage.message_id;
+          });
       }
 
       if (user.state === 4) {
+        deleteKB(options.chatId, currentMessageId);
+
         if (
           text === undefined ||
           !text.match(
             /(0[1-9]|[12][0-9]|3[01])(-)(0[1-9]|1[1,2])(-)(19|20)\d{2} ([0-1]?[0-9]|2[0-3]):([0-5][0-9])/g
           )
         ) {
-          return bot.sendMessage(
-            options.chatId,
-            "Некорректный вывод даты и времени, попробуйте ещё раз",
-            cancelOptions
-          );
+          return bot
+            .sendMessage(
+              options.chatId,
+              "Некорректный вывод даты и времени, попробуйте ещё раз",
+              cancelOptions()
+            )
+            .then((sendMessage) => {
+              currentMessageId = sendMessage.message_id;
+            });
         }
+
+        deleteKB(options.chatId, currentMessageId);
 
         const data = text.split(" "); // [DD-MM-YYYY, HH:MM]
         const DMY = data[0].split("-"); // [DD, MM, YYYY]
@@ -199,11 +208,18 @@ const start = async () => {
         let now = new Date();
 
         if (date < now) {
-          return bot.sendMessage(
-            options.chatId,
-            "Данная дата уже прошла, попробуйте другую"
-          );
+          return bot
+            .sendMessage(
+              options.chatId,
+              "Данная дата уже прошла, попробуйте другую",
+              cancelOptions()
+            )
+            .then((sendMessage) => {
+              currentMessageId = sendMessage.message_id;
+            });
         }
+
+        deleteKB(options.chatId, currentMessageId);
 
         user.state = 1;
         await user.save();
@@ -261,7 +277,7 @@ const start = async () => {
         return bot.sendMessage(
           options.chatId,
           "По любым вопросам можете связаться с автором бота",
-          heplOptions
+          heplOptions()
         );
       }
 
@@ -297,7 +313,7 @@ const start = async () => {
                 } ${reminders.date.getFullYear()} в ${reminders.date.getHours()} час. ${reminders.date.getMinutes()} мин. (По МСК)`
             )
             .join(`\n`);
-          return bot.sendMessage(options.chatId, helpText, listOptions);
+          return bot.sendMessage(options.chatId, helpText, listOptions());
         }
       }
 
@@ -340,6 +356,9 @@ const start = async () => {
       bot.editMessageText("Введите дату в формате DD-MM-YYYY HH:MM", {
         chat_id: options.chatId,
         message_id: options.message_id,
+        reply_markup: JSON.stringify({
+          inline_keyboard: [[{ text: "Вернуться", callback_data: "/back" }]],
+        }),
       });
     }
   });
