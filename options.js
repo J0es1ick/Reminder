@@ -1,7 +1,7 @@
 const cancelOptions = () => {
   return {
     reply_markup: JSON.stringify({
-      inline_keyboard: [[{ text: "Вернуться", callback_data: "/back" }]],
+      inline_keyboard: [[{ text: "Отменить", callback_data: "/back" }]],
     }),
   };
 };
@@ -19,23 +19,17 @@ const descOptions = () => {
     reply_markup: JSON.stringify({
       inline_keyboard: [
         [{ text: "Пропустить", callback_data: "/skip" }],
-        [{ text: "Вернуться", callback_data: "/back" }],
+        [{ text: "Отменить", callback_data: "/back" }],
       ],
     }),
   };
 };
-const listOptions = () => {
-  return {
-    reply_markup: JSON.stringify({
-      inline_keyboard: [
-        [
-          { text: ">", callback_data: "/next" },
-          { text: ">>", callback_data: "/last" },
-        ],
-        [{ text: "Удалить по номеру", callback_data: "/delete" }],
-      ],
-    }),
-  };
+const listOptions = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [{ text: "Удалить по номеру", callback_data: "/delete" }],
+    ],
+  }),
 };
 
 module.exports = { cancelOptions, heplOptions, descOptions, listOptions };

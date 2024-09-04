@@ -66,6 +66,9 @@ const start = async () => {
   });
 */
 
+  let firstButtns;
+  let secondButtns;
+
   bot.on("message", async (msg) => {
     const text = msg.text;
     const options = {
@@ -239,7 +242,7 @@ const start = async () => {
               latestReminder.date.getMonth() + 1
             } ${latestReminder.date.getFullYear()} в ${latestReminder.date.getHours()} час. ${latestReminder.date.getMinutes()} мин: \n\n ${
               latestReminder.title
-            }`
+            } \n ${latestReminder.description}`
           );
           ReminderModel.destroy({
             where: {
@@ -289,6 +292,7 @@ const start = async () => {
             userId: user.id,
           },
         });
+        let countOfRem = 0;
 
         if (reminders.length === 0) {
           return bot.sendMessage(
@@ -297,17 +301,31 @@ const start = async () => {
           );
         } else {
           let helpText = `Список ваших напоминаний: \n`;
-          helpText += reminders
-            .map(
-              (reminders) =>
-                `Напоминание: ${
-                  reminders.title
-                } | Дата: ${reminders.date.getDate()} ${
-                  reminders.date.getMonth() + 1
-                } ${reminders.date.getFullYear()} в ${reminders.date.getHours()} час. ${reminders.date.getMinutes()} мин. (По МСК)`
-            )
-            .join(`\n`);
-          return bot.sendMessage(options.chatId, helpText, listOptions());
+          for (
+            ;
+            countOfRem < reminders.length && countOfRem < 10;
+            countOfRem++
+          ) {
+            helpText += ` ${countOfRem + 1} - ${
+              reminders[countOfRem].title
+            } | Дата: ${reminders[countOfRem].date.getDate()} ${
+              reminders[countOfRem].date.getMonth() + 1
+            } ${reminders[countOfRem].date.getFullYear()} в ${reminders[
+              countOfRem
+            ].date.getHours()} час. ${reminders[
+              countOfRem
+            ].date.getMinutes()} мин. (По МСК) \n`;
+          }
+
+          const buttons = reminders.map((reminders, index) => ({
+            text: `${index + 1}`,
+            callback_data: `/delete_${index}`,
+          }));
+          firstButtns = buttons.splice(0, 5);
+          secondButtns = buttons.splice(0, 5);
+          console.log(firstButtns, secondButtns);
+
+          return bot.sendMessage(options.chatId, helpText, listOptions);
         }
       }
 
@@ -353,6 +371,27 @@ const start = async () => {
         reply_markup: JSON.stringify({
           inline_keyboard: [[{ text: "Вернуться", callback_data: "/back" }]],
         }),
+      });
+    }
+    if (data === "/delete") {
+      const newReplyMarkup = {
+        reply_markup: {
+          inline_keyboard: [
+            [...firstButtns],
+            [...secondButtns],
+            [{ text: "Назад", callback_data: "/backTo" }],
+          ],
+        },
+      };
+      bot.editMessageReplyMarkup(newReplyMarkup.reply_markup, {
+        chat_id: options.chatId,
+        message_id: options.message_id,
+      });
+    }
+    if (data === "/backTo") {
+      bot.editMessageReplyMarkup(listOptions.reply_markup, {
+        chat_id: options.chatId,
+        message_id: options.message_id,
       });
     }
   });
