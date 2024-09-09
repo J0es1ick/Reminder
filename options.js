@@ -5,7 +5,7 @@ const cancelOptions = () => {
     }),
   };
 };
-const heplOptions = () => {
+/*const helpOptions = () => {
   return {
     reply_markup: JSON.stringify({
       inline_keyboard: [
@@ -13,7 +13,7 @@ const heplOptions = () => {
       ],
     }),
   };
-};
+};*/
 const descOptions = () => {
   return {
     reply_markup: JSON.stringify({
@@ -32,4 +32,4 @@ const listOptions = {
   }),
 };
 
-module.exports = { cancelOptions, heplOptions, descOptions, listOptions };
+module.exports = { cancelOptions, descOptions, listOptions };
