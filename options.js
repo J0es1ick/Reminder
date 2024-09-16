@@ -5,15 +5,6 @@ const cancelOptions = () => {
     }),
   };
 };
-/*const helpOptions = () => {
-  return {
-    reply_markup: JSON.stringify({
-      inline_keyboard: [
-        [{ text: "Связь с автором", url: "https://t.me/Debilchik89" }],
-      ],
-    }),
-  };
-};*/
 const descOptions = () => {
   return {
     reply_markup: JSON.stringify({
@@ -24,12 +15,20 @@ const descOptions = () => {
     }),
   };
 };
-const listOptions = {
-  reply_markup: JSON.stringify({
-    inline_keyboard: [
-      [{ text: "Удалить по номеру", callback_data: "/delete" }],
-    ],
-  }),
+const listOptions = (startIndex, endIndex, reminders) => {
+  return {
+    reply_markup: JSON.stringify({
+      inline_keyboard: [
+        startIndex > 0
+          ? [{ text: "Назад", callback_data: `prev:${startIndex}` }]
+          : [],
+        endIndex < reminders.length
+          ? [{ text: "Вперёд", callback_data: `next:${endIndex}` }]
+          : [],
+        [{ text: "Удалить по номеру", callback_data: "/delete" }],
+      ],
+    }),
+  };
 };
 
 module.exports = { cancelOptions, descOptions, listOptions };

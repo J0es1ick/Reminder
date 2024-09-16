@@ -1,4 +1,3 @@
-const helpOptions = require("../options");
 const bot = require("../bot");
 
 const helpMsg = (chatId) => {

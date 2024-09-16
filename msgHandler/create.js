@@ -134,7 +134,7 @@ const createMsg4 = async (user, options, reminder, text) => {
           latestReminder.date.getMonth() + 1
         } ${latestReminder.date.getFullYear()} в ${latestReminder.date.getHours()} час. ${latestReminder.date.getMinutes()} мин: \n\n ${
           latestReminder.title
-        } \n ${latestReminder.description}`
+        } \n ${latestReminder.description ? latestReminder.description : ""}`
       );
       ReminderModel.destroy({
         where: {
