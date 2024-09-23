@@ -3,7 +3,7 @@ const UserModel = require("./models/User");
 const ReminderModel = require("./models/Reminder");
 const assotiations = require("./models/assotiations");
 const sequelize = require("./db");
-const utils = require("./msgHandler/utils");
+const msgUtils = require("./msgHandler/utils");
 const dataUtils = require("./dataHandler/utils");
 
 assotiations.func();
@@ -69,19 +69,19 @@ const start = async () => {
       if (user.state >= 2 && user.state <= 4) {
         switch (user.state) {
           case 2:
-            return utils
+            return msgUtils
               .createMsg2(user, commands, options, reminder, text)
               .then((sendMessage) => {
                 currentMessageId = sendMessage.message_id;
               });
           case 3:
-            return utils
+            return msgUtils
               .createMsg3(user, commands, options, reminder, text)
               .then((sendMessage) => {
                 currentMessageId = sendMessage.message_id;
               });
           case 4:
-            return utils
+            return msgUtils
               .createMsg4(user, options, reminder, text)
               .then((sendMessage) => {
                 currentMessageId = sendMessage.message_id;
@@ -91,19 +91,19 @@ const start = async () => {
 
       switch (text) {
         case "/create":
-          return await utils.createMsg(user, options).then((sendMessage) => {
+          return await msgUtils.createMsg(user, options).then((sendMessage) => {
             currentMessageId = sendMessage.message_id;
           });
         case "/start":
-          return utils.startMsg(options.chatId);
+          return msgUtils.startMsg(options.chatId);
         case "/rlist":
-          return utils.rlistMsg(user, options.chatId, text);
+          return msgUtils.rlistMsg(user, options.chatId, text);
         case "/id":
-          return utils.idMsg(options.chatId, options.tgId);
+          return msgUtils.idMsg(options.chatId, options.tgId);
         case "/help":
-          return utils.helpMsg(options.chatId);
+          return msgUtils.helpMsg(options.chatId);
         case "/info":
-          return utils.infoMsg(options, commands);
+          return msgUtils.infoMsg(options, commands);
 
         default:
           if (!commands.some((command) => command.command === text)) {
