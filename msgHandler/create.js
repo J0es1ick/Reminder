@@ -145,7 +145,13 @@ const createMsg4 = async (user, options, reminder, text) => {
       });
     });
 
-    return bot.sendMessage(options.chatId, "Напоминание создано!");
+    return bot.sendMessage(options.chatId, "Напоминание создано!", {
+      reply_markup: JSON.stringify({
+        inline_keyboard: [
+          [{ text: "Создать ещё одно напоминание", callback_data: "/again" }],
+        ],
+      }),
+    });
   }
 };
 

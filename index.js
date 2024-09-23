@@ -3,9 +3,8 @@ const UserModel = require("./models/User");
 const ReminderModel = require("./models/Reminder");
 const assotiations = require("./models/assotiations");
 const sequelize = require("./db");
-const { cancelOptions, descOptions, listOptions } = require("./options");
 const utils = require("./msgHandler/utils");
-const generateReminderMessage = require("./generateReminderMessage");
+const dataUtils = require("./dataHandler/utils");
 
 assotiations.func();
 
@@ -23,6 +22,8 @@ const commands = [
 
 const start = async () => {
   let currentMessageId;
+  let startIndex = 0;
+  let endIndex = 10;
   const reminder = [];
 
   try {
@@ -118,15 +119,13 @@ const start = async () => {
     }
   });
 
-  let startIndex = 0;
-  let endIndex = 10;
-
   bot.on("callback_query", async (msg) => {
     const options = {
       chatId: msg.message.chat.id,
       message_id: msg.message.message_id,
     };
     const data = msg.data;
+
     let user = await UserModel.findOne({
       where: {
         chatId: options.chatId,
@@ -138,103 +137,25 @@ const start = async () => {
       },
     });
     if (data.startsWith("prev:") || data.startsWith("next:")) {
-      const action = data.split(":")[0];
-      const index = parseInt(data.split(":")[1]);
-
-      if (action === "prev") {
-        startIndex = Math.max(0, index - 10);
-        endIndex = index;
-      } else if (action === "next") {
-        startIndex = index;
-        endIndex = Math.min(reminders.length, index + 10);
-      }
-
-      const { helpText, keyboard } = generateReminderMessage(
-        options.chatId,
-        reminders,
-        startIndex,
-        endIndex
-      );
-
-      bot.editMessageText(helpText, {
-        chat_id: options.chatId,
-        message_id: options.message_id,
-        reply_markup: keyboard,
-      });
-    }
-    if (data === "/back") {
-      user.state = 1;
-      await user.save();
-      bot.editMessageText("Вы отменили действие", {
-        chat_id: user.chatId,
-        message_id: options.message_id,
-      });
-    }
-    if (data === "/skip") {
-      user.state = 4;
-      await user.save();
-      bot.editMessageText("Введите дату в формате DD-MM-YYYY HH:MM", {
-        chat_id: options.chatId,
-        message_id: options.message_id,
-        reply_markup: JSON.stringify({
-          inline_keyboard: [[{ text: "Отменить", callback_data: "/back" }]],
-        }),
-      });
-    }
-    if (data === "/delete") {
-      const { helpText, keyboard } = generateReminderMessage(
-        options.chatId,
-        reminders,
+      [startIndex, endIndex] = dataUtils.pages(
+        data,
         startIndex,
         endIndex,
-        data
+        reminders,
+        options
       );
-
-      const optionsForBtn = {
-        chat_id: options.chatId,
-        message_id: options.message_id,
-        reply_markup: JSON.stringify({
-          ...keyboard,
-        }),
-      };
-      bot.editMessageText(helpText, optionsForBtn);
-    }
-    if (data === "/backTo") {
-      const keyboard = listOptions(startIndex, endIndex, reminders);
-      bot.editMessageReplyMarkup(JSON.stringify(keyboard), {
-        chat_id: options.chatId,
-        message_id: options.message_id,
-      });
-    }
-    if (data.startsWith("/delete_")) {
-      const reminderIndex = parseInt(data.split("_")[1]);
-      const reminderToDelete = reminders[reminderIndex];
-
-      if (reminderToDelete) {
-        await ReminderModel.destroy({ where: { id: reminderToDelete.id } });
-
-        const updatedReminders = await ReminderModel.findAll({
-          where: { userId: user.id },
-        });
-
-        const { helpText, keyboard } = generateReminderMessage(
-          options.chatId,
-          updatedReminders,
-          startIndex,
-          endIndex,
-          data
-        );
-
-        const optionsForBtn = {
-          chat_id: options.chatId,
-          message_id: options.message_id,
-          reply_markup: JSON.stringify({
-            ...keyboard,
-          }),
-        };
-
-        bot.editMessageText(helpText, optionsForBtn);
-      }
+    } else if (data === "/back") {
+      dataUtils.back(user, options);
+    } else if (data === "/skip") {
+      dataUtils.skip(user, options);
+    } else if (data === "/delete") {
+      dataUtils.deleteMsg(options, reminders, startIndex, endIndex, data);
+    } else if (data === "/backTo") {
+      dataUtils.backTo(startIndex, endIndex, reminders, options);
+    } else if (data.startsWith("/delete_")) {
+      dataUtils.deleteRem(data, user, options, startIndex, endIndex, reminders);
+    } else if (data === "/again") {
+      dataUtils.again(user, options);
     }
   });
 };

@@ -25,7 +25,7 @@ function generateReminderMessage(
 
   if (!data) {
     keyboard = listOptions(startIndex, endIndex, reminders);
-  } else if (data === "/delete" || data.startsWith("/delete_")) {
+  } else {
     keyboard = {
       inline_keyboard: [
         buttons.slice(0, 5),
