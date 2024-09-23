@@ -88,10 +88,6 @@ const start = async () => {
         }
       }
 
-      if (options.chatId === 1937629383) {
-        bot.sendMessage(options.chatId, "Привет");
-      }
-
       switch (text) {
         case "/create":
           return await utils.createMsg(user, options).then((sendMessage) => {
