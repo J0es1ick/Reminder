@@ -36,7 +36,8 @@ const createMsg2 = async (user, commands, options, reminder, text) => {
       if (text === callbackText[i] || text == undefined) {
         return bot.sendMessage(
           options.chatId,
-          "Такое название не поддерживается, попробуйте снова"
+          "Такое название не поддерживается, попробуйте снова",
+          cancelOptions
         );
       }
     }
@@ -62,7 +63,8 @@ const createMsg3 = async (user, commands, options, reminder, text) => {
       if (text === callbackText[i] || text == undefined) {
         return bot.sendMessage(
           options.chatId,
-          "Такое описание не поддерживается, попробуйте снова"
+          "Такое описание не поддерживается, попробуйте снова",
+          cancelOptions
         );
       }
     }
@@ -130,9 +132,7 @@ const createMsg4 = async (user, options, reminder, text) => {
     schedule.scheduleJob(date, function () {
       bot.sendMessage(
         options.chatId,
-        `Ваше напоминание на ${latestReminder.date.getDate()} ${
-          latestReminder.date.getMonth() + 1
-        } ${latestReminder.date.getFullYear()} в ${latestReminder.date.getHours()} час. ${latestReminder.date.getMinutes()} мин: \n\n ${
+        `Ваше напоминание на ${latestReminder.date.toLocaleDateString()} в ${latestReminder.date.toLocaleTimeString()}:\n\n ${
           latestReminder.title
         } \n ${latestReminder.description ? latestReminder.description : ""}`
       );

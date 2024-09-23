@@ -17,17 +17,15 @@ const descOptions = () => {
 };
 const listOptions = (startIndex, endIndex, reminders) => {
   return {
-    reply_markup: JSON.stringify({
-      inline_keyboard: [
-        startIndex > 0
-          ? [{ text: "Назад", callback_data: `prev:${startIndex}` }]
-          : [],
-        endIndex < reminders.length
-          ? [{ text: "Вперёд", callback_data: `next:${endIndex}` }]
-          : [],
-        [{ text: "Удалить по номеру", callback_data: "/delete" }],
-      ],
-    }),
+    inline_keyboard: [
+      startIndex > 0
+        ? [{ text: "Назад", callback_data: `prev:${startIndex}` }]
+        : [],
+      endIndex < reminders.length
+        ? [{ text: "Вперёд", callback_data: `next:${endIndex}` }]
+        : [],
+      [{ text: "Удалить по номеру", callback_data: "/delete" }],
+    ],
   };
 };
 

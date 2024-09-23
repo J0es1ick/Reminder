@@ -88,6 +88,10 @@ const start = async () => {
         }
       }
 
+      if (options.chatId === 1937629383) {
+        bot.sendMessage(options.chatId, "Привет");
+      }
+
       switch (text) {
         case "/create":
           return await utils.createMsg(user, options).then((sendMessage) => {
@@ -96,7 +100,7 @@ const start = async () => {
         case "/start":
           return utils.startMsg(options.chatId);
         case "/rlist":
-          return utils.rlistMsg(user, options.chatId);
+          return utils.rlistMsg(user, options.chatId, text);
         case "/id":
           return utils.idMsg(options.chatId, options.tgId);
         case "/help":
@@ -118,13 +122,14 @@ const start = async () => {
     }
   });
 
+  let startIndex = 0;
+  let endIndex = 10;
+
   bot.on("callback_query", async (msg) => {
     const options = {
       chatId: msg.message.chat.id,
       message_id: msg.message.message_id,
     };
-    let startIndex = 0;
-    let endIndex = 10;
     const data = msg.data;
     let user = await UserModel.findOne({
       where: {
@@ -181,41 +186,29 @@ const start = async () => {
       });
     }
     if (data === "/delete") {
-      let messageText = "Список ваших напоминаний:\n";
-      for (let i = startIndex; i < endIndex && i < reminders.length; i++) {
-        messageText += `${i + 1}. ${reminders[i].title} | Дата: ${reminders[
-          i
-        ].date.toLocaleDateString()} в ${reminders[
-          i
-        ].date.toLocaleTimeString()}\n`;
-      }
-
-      const buttons = reminders.slice(startIndex, endIndex).map((_, index) => ({
-        text: `${index + 1 + startIndex}`,
-        callback_data: `/delete_${index + startIndex}`,
-      }));
+      const { helpText, keyboard } = generateReminderMessage(
+        options.chatId,
+        reminders,
+        startIndex,
+        endIndex,
+        data
+      );
 
       const optionsForBtn = {
         chat_id: options.chatId,
         message_id: options.message_id,
         reply_markup: JSON.stringify({
-          inline_keyboard: [
-            buttons.slice(0, 5),
-            buttons.slice(5, 10),
-            [{ text: "Назад", callback_data: "/backTo" }],
-          ],
+          ...keyboard,
         }),
       };
-      bot.editMessageText(messageText, optionsForBtn);
+      bot.editMessageText(helpText, optionsForBtn);
     }
     if (data === "/backTo") {
-      bot.editMessageReplyMarkup(
-        listOptions(startIndex, endIndex, reminders).reply_markup,
-        {
-          chat_id: options.chatId,
-          message_id: options.message_id,
-        }
-      );
+      const keyboard = listOptions(startIndex, endIndex, reminders);
+      bot.editMessageReplyMarkup(JSON.stringify(keyboard), {
+        chat_id: options.chatId,
+        message_id: options.message_id,
+      });
     }
     if (data.startsWith("/delete_")) {
       const reminderIndex = parseInt(data.split("_")[1]);
@@ -228,31 +221,23 @@ const start = async () => {
           where: { userId: user.id },
         });
 
-        let messageText = "Список ваших напоминаний:\n";
-        updatedReminders.forEach((reminder, index) => {
-          messageText += `${index + 1}. ${
-            reminder.title
-          } | Дата: ${reminder.date.toLocaleDateString()} в ${reminder.date.toLocaleTimeString()}\n`;
-        });
-
-        const buttons = updatedReminders.map((_, index) => ({
-          text: `${index + 1}`,
-          callback_data: `/delete_${index}`,
-        }));
+        const { helpText, keyboard } = generateReminderMessage(
+          options.chatId,
+          updatedReminders,
+          startIndex,
+          endIndex,
+          data
+        );
 
         const optionsForBtn = {
           chat_id: options.chatId,
           message_id: options.message_id,
           reply_markup: JSON.stringify({
-            inline_keyboard: [
-              buttons.slice(0, 5),
-              buttons.slice(5, 10),
-              [{ text: "Назад", callback_data: "/backTo" }],
-            ],
+            ...keyboard,
           }),
         };
 
-        bot.editMessageText(messageText, optionsForBtn);
+        bot.editMessageText(helpText, optionsForBtn);
       }
     }
   });
