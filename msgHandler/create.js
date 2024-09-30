@@ -1,6 +1,7 @@
 const schedule = require("node-schedule");
 const bot = require("../bot");
 const ReminderModel = require("../models/Reminder");
+const { DateTime } = require("luxon");
 
 const cancelOptions = {
   reply_markup: JSON.stringify({
@@ -16,7 +17,7 @@ const descOptions = {
   }),
 };
 
-const createMsg = async (user, options) => {
+const create = async (user, options) => {
   if (user.state === 1) {
     user.state = 2;
     await user.save();
@@ -29,7 +30,7 @@ const createMsg = async (user, options) => {
   }
 };
 
-const createMsg2 = async (user, commands, options, reminder, text) => {
+const createTitle = async (user, commands, options, reminder, text) => {
   if (user.state === 2) {
     let callbackText = commands.map((commands) => commands.command);
     for (let i = 0; i < callbackText.length; i++) {
@@ -56,7 +57,7 @@ const createMsg2 = async (user, commands, options, reminder, text) => {
   }
 };
 
-const createMsg3 = async (user, commands, options, reminder, text) => {
+const createDesc = async (user, commands, options, reminder, text) => {
   if (user.state === 3) {
     let callbackText = commands.map((commands) => commands.command);
     for (let i = 0; i < callbackText.length; i++) {
@@ -73,22 +74,13 @@ const createMsg3 = async (user, commands, options, reminder, text) => {
     user.state = 4;
     await user.save();
 
-    return bot.sendMessage(
-      options.chatId,
-      "Введите дату в формате DD-MM-YYYY HH:MM",
-      cancelOptions
-    );
+    return bot.sendMessage(options.chatId, "Введите дату", cancelOptions);
   }
 };
 
-const createMsg4 = async (user, options, reminder, text) => {
+const createDate = async (user, options, reminder, text) => {
   if (user.state === 4) {
-    if (
-      text === undefined ||
-      !text.match(
-        /(0[1-9]|[12][0-9]|3[01])(-)(0[1-9]|1[1,2])(-)(19|20)\d{2} ([0-1]?[0-9]|2[0-3]):([0-5][0-9])/g
-      )
-    ) {
+    if (text === undefined || text.trim() === "") {
       return bot.sendMessage(
         options.chatId,
         "Некорректный вывод даты и времени, попробуйте ещё раз",
@@ -96,15 +88,55 @@ const createMsg4 = async (user, options, reminder, text) => {
       );
     }
 
-    const data = text.split(" "); // [DD-MM-YYYY, HH:MM]
-    const DMY = data[0].split("-"); // [DD, MM, YYYY]
-    const time = data[1].split(":"); // [HH, MM]
+    const formats = [
+      "d MMMM yyyy H:mm",
+      "d MM yyyy H:mm",
+      "d/MM/yyyy H:mm",
+      "d.MM.yyyy H:mm",
+      "H:mm",
+      "H mm",
+      "H-mm",
+    ];
 
-    const date = new Date(DMY[2], Number(DMY[1]) - 1, DMY[0], time[0], time[1]);
+    const locales = ["ru", "en-US"];
 
-    let now = new Date();
+    let parsedDate;
+    for (const locale of locales) {
+      for (const format of formats) {
+        parsedDate = DateTime.fromFormat(text, format, { locale });
+        if (parsedDate.isValid) {
+          break;
+        }
+      }
+      if (parsedDate.isValid) {
+        break;
+      }
+    }
 
-    if (date < now) {
+    if (!parsedDate || !parsedDate.isValid) {
+      return bot.sendMessage(
+        options.chatId,
+        "Некорректный формат даты. Пожалуйста, попробуйте другой формат (например, 15-03-2024 10:30, 15 марта 2024 10:30 и т.д.).",
+        cancelOptions
+      );
+    }
+
+    const now = DateTime.now();
+
+    if (text.match(/^\d{1,2}[:.\s]\d{2}$/)) {
+      parsedDate = DateTime.fromObject(
+        {
+          year: now.year,
+          month: now.month,
+          day: now.day,
+          hour: parsedDate.hour,
+          minute: parsedDate.minute,
+        },
+        { locale: parsedDate.locale }
+      );
+    }
+
+    if (parsedDate < now) {
       return bot.sendMessage(
         options.chatId,
         "Данная дата уже прошла, попробуйте другую",
@@ -114,8 +146,7 @@ const createMsg4 = async (user, options, reminder, text) => {
 
     user.state = 1;
     await user.save();
-
-    reminder.date = date;
+    reminder.date = parsedDate.toJSDate();
 
     let latestReminder = await ReminderModel.create(
       {
@@ -129,7 +160,7 @@ const createMsg4 = async (user, options, reminder, text) => {
 
     reminder.description = null;
 
-    schedule.scheduleJob(date, function () {
+    schedule.scheduleJob(reminder.date, function () {
       bot.sendMessage(
         options.chatId,
         `Ваше напоминание на ${latestReminder.date.toLocaleDateString()} в ${latestReminder.date.toLocaleTimeString()}:\n\n ${
@@ -155,4 +186,4 @@ const createMsg4 = async (user, options, reminder, text) => {
   }
 };
 
-module.exports = { createMsg, createMsg2, createMsg3, createMsg4 };
+module.exports = { create, createTitle, createDesc, createDate };

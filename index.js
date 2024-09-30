@@ -70,19 +70,19 @@ const start = async () => {
         switch (user.state) {
           case 2:
             return msgUtils
-              .createMsg2(user, commands, options, reminder, text)
+              .createTitle(user, commands, options, reminder, text)
               .then((sendMessage) => {
                 currentMessageId = sendMessage.message_id;
               });
           case 3:
             return msgUtils
-              .createMsg3(user, commands, options, reminder, text)
+              .createDesc(user, commands, options, reminder, text)
               .then((sendMessage) => {
                 currentMessageId = sendMessage.message_id;
               });
           case 4:
             return msgUtils
-              .createMsg4(user, options, reminder, text)
+              .createDate(user, options, reminder, text)
               .then((sendMessage) => {
                 currentMessageId = sendMessage.message_id;
               });
@@ -91,7 +91,7 @@ const start = async () => {
 
       switch (text) {
         case "/create":
-          return await msgUtils.createMsg(user, options).then((sendMessage) => {
+          return await msgUtils.create(user, options).then((sendMessage) => {
             currentMessageId = sendMessage.message_id;
           });
         case "/start":
