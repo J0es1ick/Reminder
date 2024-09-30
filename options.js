@@ -18,11 +18,11 @@ const descOptions = () => {
 const listOptions = (startIndex, endIndex, reminders) => {
   return {
     inline_keyboard: [
-      startIndex > 0
-        ? [{ text: "Назад", callback_data: `prev:${startIndex}` }]
-        : [],
       endIndex < reminders.length
-        ? [{ text: "Вперёд", callback_data: `next:${endIndex}` }]
+        ? [{ text: ">>", callback_data: `next:${endIndex}` }]
+        : [],
+      startIndex > 0
+        ? [{ text: "<<", callback_data: `prev:${startIndex}` }]
         : [],
       [{ text: "Удалить по номеру", callback_data: "/delete" }],
     ],
