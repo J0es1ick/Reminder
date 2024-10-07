@@ -1,4 +1,7 @@
-const { create, createTitle, createDesc, createDate } = require("./create");
+const create = require("./create");
+const createDate = require("./createDate");
+const createDesc = require("./createDesc");
+const createTitle = require("./createTitle");
 const helpMsg = require("./help");
 const idMsg = require("./id");
 const infoMsg = require("./info");

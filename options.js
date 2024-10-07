@@ -5,6 +5,7 @@ const cancelOptions = () => {
     }),
   };
 };
+
 const descOptions = () => {
   return {
     reply_markup: JSON.stringify({
@@ -15,6 +16,7 @@ const descOptions = () => {
     }),
   };
 };
+
 const listOptions = (startIndex, endIndex, reminders) => {
   return {
     inline_keyboard: [
