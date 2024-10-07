@@ -2,6 +2,7 @@ const UserModel = require("./models/User");
 const ReminderModel = require("./models/Reminder");
 const msgUtils = require("./msgHandler/utils");
 const dataUtils = require("./dataHandler/utils");
+const bot = require("./bot");
 
 let currentMessageId;
 let startIndex = 0;
