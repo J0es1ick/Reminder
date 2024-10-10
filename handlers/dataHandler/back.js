@@ -1,5 +1,5 @@
-const bot = require("../bot");
-const UserModel = require("../models/User");
+const bot = require("../../bot");
+const UserModel = require("../../models/User");
 
 const back = async (user, options) => {
   user.state = 1;

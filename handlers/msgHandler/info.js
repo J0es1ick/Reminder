@@ -1,4 +1,4 @@
-const bot = require("../bot");
+const bot = require("../../bot");
 
 const infoMsg = (options, commands) => {
   let helpText = `Список доступных команд: \n`;

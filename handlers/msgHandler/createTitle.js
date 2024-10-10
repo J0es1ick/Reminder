@@ -1,5 +1,9 @@
-const bot = require("../bot");
-const { cancelOptions, descOptions, listOptions } = require("../options");
+const bot = require("../../bot");
+const {
+  cancelOptions,
+  descOptions,
+  listOptions,
+} = require("../../helpers/options");
 
 const createTitle = async (user, commands, options, reminder, text) => {
   if (user.state === 2) {

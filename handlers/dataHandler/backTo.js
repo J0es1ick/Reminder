@@ -1,5 +1,9 @@
-const bot = require("../bot");
-const { cancelOptions, descOptions, listOptions } = require("../options");
+const bot = require("../../bot");
+const {
+  cancelOptions,
+  descOptions,
+  listOptions,
+} = require("../../helpers/options");
 
 const backTo = (startIndex, endIndex, reminders, options) => {
   const keyboard = listOptions(startIndex, endIndex, reminders);

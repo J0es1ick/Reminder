@@ -1,8 +1,12 @@
 const schedule = require("node-schedule");
-const bot = require("../bot");
-const ReminderModel = require("../models/Reminder");
+const bot = require("../../bot");
+const ReminderModel = require("../../models/Reminder");
 const { DateTime } = require("luxon");
-const { cancelOptions, descOptions, listOptions } = require("../options");
+const {
+  cancelOptions,
+  descOptions,
+  listOptions,
+} = require("../../helpers/options");
 
 const createDate = async (user, options, reminder, text) => {
   if (user.state === 4) {

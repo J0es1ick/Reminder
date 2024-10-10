@@ -1,4 +1,4 @@
-const bot = require("../bot");
+const bot = require("../../bot");
 
 const startMsg = (chatId) => {
   return bot.sendMessage(

@@ -1,7 +1,7 @@
-const bot = require("../bot");
-const generateReminderMessage = require("../generateReminderMessage");
-const ReminderModel = require("../models/Reminder");
-const UserModel = require("../models/User");
+const bot = require("../../bot");
+const generateReminderMessage = require("../../helpers/generateReminderMessage");
+const ReminderModel = require("../../models/Reminder");
+const UserModel = require("../../models/User");
 
 const deleteRem = async (
   data,

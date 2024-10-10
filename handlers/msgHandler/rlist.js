@@ -1,6 +1,6 @@
-const bot = require("../bot");
-const ReminderModel = require("../models/Reminder");
-const generateReminderMessage = require("../generateReminderMessage");
+const bot = require("../../bot");
+const ReminderModel = require("../../models/Reminder");
+const generateReminderMessage = require("../../helpers/generateReminderMessage");
 
 const rlistMsg = async (user, chatId, text) => {
   const reminders = await ReminderModel.findAll({

@@ -1,5 +1,5 @@
-const bot = require("../bot");
-const generateReminderMessage = require("../generateReminderMessage");
+const bot = require("../../bot");
+const generateReminderMessage = require("../../helpers/generateReminderMessage");
 
 const pages = (data, startIndex, endIndex, reminders, options) => {
   const action = data.split(":")[0];

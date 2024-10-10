@@ -1,5 +1,5 @@
-const bot = require("../bot");
-const generateReminderMessage = require("../generateReminderMessage");
+const bot = require("../../bot");
+const generateReminderMessage = require("../../helpers/generateReminderMessage");
 
 const deleteBtn = async (options, reminders, startIndex, endIndex, data) => {
   const { helpText, keyboard } = generateReminderMessage(

@@ -1,7 +1,7 @@
 const bot = require("./bot");
 const associations = require("./models/assotiations");
 const sequelize = require("./db");
-const { handleMessage, handleCallbackQuery } = require("./handlers");
+const { handleMessage, handleCallbackQuery } = require("./handlers/handlers");
 
 associations.func();
 
