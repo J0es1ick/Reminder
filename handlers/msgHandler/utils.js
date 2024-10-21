@@ -7,6 +7,7 @@ const idMsg = require("./id");
 const infoMsg = require("./info");
 const rlistMsg = require("./rlist");
 const startMsg = require("./start");
+const weatherMsg = require("./weather");
 
 module.exports = {
   create,
@@ -18,4 +19,5 @@ module.exports = {
   infoMsg,
   rlistMsg,
   startMsg,
+  weatherMsg,
 };

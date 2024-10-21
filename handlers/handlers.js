@@ -71,6 +71,8 @@ const handleUserState = async (user, options, text, reminder, commands) => {
   }
 
   switch (text) {
+    case "/weather":
+      return msgUtils.weatherMsg(options.chatId);
     case "/start":
       return msgUtils.startMsg(options.chatId);
     case "/rlist":

@@ -15,6 +15,7 @@ const commands = [
   { command: "/id", description: "Узнать свой айди" },
   { command: "/rlist", description: "Узнать все свои напоминания" },
   { command: "/help", description: "Обратная связь с автором" },
+  { command: "/weather", description: "Узнать погоду (только Иваново)" },
 ];
 
 const start = async () => {
