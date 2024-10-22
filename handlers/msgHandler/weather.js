@@ -1,9 +1,10 @@
 const bot = require("../../bot");
-const getWeather = require("../../helpers/getWeather");
 
-const weatherMsg = async (chatId) => {
-  const helpMsg = await getWeather();
-  return bot.sendMessage(chatId, helpMsg);
+const weatherMsg = async (chatId, user) => {
+  user.state = 5;
+  await user.save();
+
+  return bot.sendMessage(chatId, "Введите название города");
 };
 
 module.exports = weatherMsg;

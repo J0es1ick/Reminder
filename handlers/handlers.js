@@ -66,13 +66,11 @@ const handleMessage = async (msg, bot, commands) => {
 };
 
 const handleUserState = async (user, options, text, reminder, commands) => {
-  if (user.state >= 2 && user.state <= 4) {
+  if (user.state >= 2 && user.state <= 5) {
     return handleRemCreation(user, options, text, reminder, commands);
   }
 
   switch (text) {
-    case "/weather":
-      return msgUtils.weatherMsg(options.chatId);
     case "/start":
       return msgUtils.startMsg(options.chatId);
     case "/rlist":
@@ -87,6 +85,8 @@ const handleUserState = async (user, options, text, reminder, commands) => {
       return msgUtils.create(user, options).then((sendMessage) => {
         currentMessageId = sendMessage.message_id;
       });
+    case "/weather":
+      return msgUtils.weatherMsg(options.chatId, user);
     default:
       return bot.sendMessage(
         options.chatId,
@@ -115,6 +115,8 @@ const handleRemCreation = async (user, options, text, reminder, commands) => {
         .then((sendMessage) => {
           currentMessageId = sendMessage.message_id;
         });
+    case 5:
+      return msgUtils.weatherInfoMsg(options.chatId, user, text, commands);
   }
 };
 
@@ -148,6 +150,8 @@ const handleCallbackQuery = async (msg) => {
     dataUtils.deleteRem(data, user, options, startIndex, endIndex, reminders);
   } else if (data === "/again") {
     dataUtils.again(user, options);
+  } else if (data === "/findAgain") {
+    dataUtils.findAgain(options, user);
   }
 };
 

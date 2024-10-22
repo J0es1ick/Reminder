@@ -1,15 +1,16 @@
 const fetch = require("node-fetch");
-const s_city = "Ivanovo,RU";
-const appid = "3917cad1c75ea2396a1a04bad266433c";
 
-async function getWeather() {
+async function getWeather(text) {
+  const s_city = text;
+  const appid = "3917cad1c75ea2396a1a04bad266433c";
   try {
     const response = await fetch(
       `http://api.openweathermap.org/data/2.5/weather?q=${s_city}&units=metric&lang=ru&APPID=${appid}`
     );
 
     if (!response.ok) {
-      throw new Error(`Ошибка HTTP: ${response.status}`);
+      console.log(`Ошибка HTTP: ${response.status}`);
+      return undefined;
     }
 
     const data = await response.json();
@@ -21,10 +22,12 @@ async function getWeather() {
       weatherInfo += `Скорость ветра: ${data.wind.speed} м/с`;
       return weatherInfo;
     } else {
-      throw new Error("Не удалось получить данные о погоде.");
+      console.log("Не удалось получить данные о погоде.");
+      return undefined;
     }
   } catch (error) {
-    throw new Error(`Ошибка при получении данных о погоде: ${error.message}`);
+    console.log(`Ошибка при получении данных о погоде: ${error.message}`);
+    return undefined;
   }
 }
 
